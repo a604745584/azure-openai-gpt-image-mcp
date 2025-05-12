@@ -7,6 +7,27 @@ import { z } from "zod";
 import { OpenAI, toFile } from "openai";
 import fs from "fs";
 import path from "path";
+import OpenAI from "openai";
+
+export function getOpenAIClient() {
+  const useAzure = process.env.USE_AZURE_OPENAI === "true";
+
+  if (useAzure) {
+    if (!process.env.AZURE_OPENAI_ENDPOINT || !process.env.AZURE_OPENAI_KEY || !process.env.AZURE_IMAGE_DEPLOYMENT) {
+      throw new Error("Azure OpenAI 配置不完整");
+    }
+
+    return new OpenAI({
+      apiKey: process.env.AZURE_OPENAI_KEY,
+      baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments/${process.env.AZURE_IMAGE_DEPLOYMENT}`,
+    });
+  }
+
+  // 默认使用 OpenAI
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+}
 
 (async () => {
   const server = new McpServer({
